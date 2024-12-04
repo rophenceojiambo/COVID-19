@@ -32,6 +32,21 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE)
 ```
 
+```{r echo=FALSE}
+bytes <- file.size("index.Rmd")
+words <- bytes/10
+minutes <- words/200
+```
+
+
+<center>
+**Reading Time: `r round(minutes)` minute(s)**
+</center>
+<br>
+
+
+
+
 # Introduction
 
 ## Overview
