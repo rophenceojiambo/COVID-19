@@ -1,0 +1,11 @@
+project:
+  type: website
+
+website:
+  title: "COVID-19 Final Project"
+  navbar:
+    left:
+      - text: Home
+        href: index.html
+  output-dir: docs
+
