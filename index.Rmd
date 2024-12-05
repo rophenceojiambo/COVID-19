@@ -1,51 +1,35 @@
 ---
 title: "COVID-19 Final Project"
-author: "Project by Rophence Ojiambo"
+author: "Rophence Ojiambo"
+date: last-modified
+lightbox: true
 format:
   html:
-    number-sections: false
-    keep-md: true
-    embed-resources: true
-    self-contained: false
-    toc: true
-    toc-depth: 2
-    link-citations: true
-    colorlinks: true
-    linkcolor: blue
-    urlcolor: blue
+    code-fold: true
+    code-summary: "Show the code"
+    theme:
+      light: flatly
+      dark: darkly
+    number-sections: true
+    highlight-style: github
+link-citations: true
+colorlinks: true
+linkcolor: blue
+urlcolor: blue
 bibliography: references.bib
 csl: apa-numeric-superscript-brackets.csl
-always_allow_html: true
 ---
 
-
-<style>
-body {
-  background: linear-gradient(to bottom right, #F2F2F2, #E6E6E6);
-}
-</style>
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
-                      warning = FALSE)
+                      warning = FALSE,
+                      dpi = 300)
 ```
 
-```{r echo=FALSE}
-bytes <- file.size("index.Rmd")
-words <- bytes/10
-minutes <- words/200
-```
-
-
-<center>
-**Reading Time: `r round(minutes)` minute(s)**
-</center>
-<br>
-
-
-
+::: {.panel-tabset}
 
 # Introduction
 
@@ -113,10 +97,11 @@ library(stringr)     # For handling string operations like pattern matching, sub
 library(naniar)      # For managing and visualizing missing data in datasets
 library(usdata)      # For working with datasets specific to the United States, including state and county data
 library(ggplot2)     # For creating and customizing data visualizations
+library(htmltools)
 
 ```
 
-\newpage
+
 
 # Data Preparation - 10 points
 
@@ -527,14 +512,11 @@ combined_monthly_data <- combined_monthly_data %>%
 The cleaned dataset, `combined_monthly_data`, includes variables for monthly cases, deaths, hospitalizations, and tests for various racial and ethnic groups, along with population data and calculated rates. Below is a preview of the dataset structure:
 
 
+:::
 
 
 
+<div id= "refs"></div>
 
 
 
-
-
-\newpage
-
-# Bibliography
