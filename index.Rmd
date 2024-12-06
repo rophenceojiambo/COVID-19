@@ -86,6 +86,10 @@ The analysis will involve the following steps:
 
 This analysis will shed light on how the COVID-19 pandemic disproportionately affected racial and ethnic minorities in the United States. By examining and comparing the differences in cases, deaths, and hospitalizations across populations and states, this project will highlight areas where inequities are most severe. The findings can help leaders and public health officials focus their efforts, distribute resources fairly, and address the underlying issues that make some communities more vulnerable during health crises.
 
+<div style="text-align: center; margin-top: 20px;">
+  <a href="#top" style="text-decoration: none; background-color: #007BFF; color: white; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Back to Top</a>
+</div>
+
 
 # Packages Required
 
@@ -540,6 +544,11 @@ Below is a preview of the cleaned `combined_monthly_data` dataset:
 datatable(combined_monthly_data, filter = "top")
 ```
 
+<div style="text-align: center; margin-top: 20px;">
+  <a href="#top" style="text-decoration: none; background-color: #007BFF; color: white; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Back to Top</a>
+</div>
+
+
 # Exploratory Data Analysis
 
 4.1 Uncover new information in the data that is not self-evident (i.e. do not just plot the data as it is; rather, slice and dice the data in different ways, create new variables, or join separate data frames to create new summary information). 
@@ -548,6 +557,10 @@ datatable(combined_monthly_data, filter = "top")
 4.4 Table(s) carefully constructed to make it easy to perform important comparisons. Careful styling highlights important features. Size of table is appropriate. 
 4.5 Insights obtained from the analysis are thoroughly, yet succinctly, explained. Easy to see and understand the interesting findings that you uncovered. 
 
+
+<div style="text-align: center; margin-top: 20px;">
+  <a href="#top" style="text-decoration: none; background-color: #007BFF; color: white; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Back to Top</a>
+</div>
 
 # Summary
 
