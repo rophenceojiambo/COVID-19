@@ -1,17 +1,13 @@
 ---
-title: "COVID-19 Final Project"
-author: "Rophence Ojiambo"
-date: last-modified
 lightbox: true
 format:
   html:
     code-fold: true
     code-summary: "Show the code"
-    theme:
-      light: flatly
-      dark: darkly
-    number-sections: true
+    theme: materia
     highlight-style: github
+    page-layout: full
+    title-block-align: center
 link-citations: true
 colorlinks: true
 linkcolor: blue
@@ -20,6 +16,11 @@ bibliography: references.bib
 csl: apa-numeric-superscript-brackets.csl
 ---
 
+<div style="text-align: center; margin-bottom: 20px;">
+  <h1 style="font-size: 3rem;">Disparities in COVID-19 Outcomes</h1>
+  <p></strong> Rophence Ojiambo</p>
+  <p></strong> December 6, 2024</p>
+</div>
 
 
 ```{r setup, include=FALSE}
@@ -29,7 +30,12 @@ knitr::opts_chunk$set(echo = TRUE,
                       dpi = 300)
 ```
 
-::: {.panel-tabset}
+COVID-19 had an unprecedented impact on public health, particularly among vulnerable populations. This project examines the disproportionate effects of the pandemic on racial and ethnic communities in the United States. 
+
+Below, you can navigate through the project components to explore the methodology, analysis, and findings.
+
+
+::: {.panel-tabset .tabset-scrollable}
 
 # Introduction
 
@@ -80,6 +86,7 @@ The analysis will involve the following steps:
 
 This analysis will shed light on how the COVID-19 pandemic disproportionately affected racial and ethnic minorities in the United States. By examining and comparing the differences in cases, deaths, and hospitalizations across populations and states, this project will highlight areas where inequities are most severe. The findings can help leaders and public health officials focus their efforts, distribute resources fairly, and address the underlying issues that make some communities more vulnerable during health crises.
 
+
 # Packages Required
 
 Next, we load all the packages required for the analysis
@@ -103,7 +110,7 @@ library(htmltools)
 
 
 
-# Data Preparation - 10 points
+# Data Preparation
 
 
 
@@ -512,11 +519,30 @@ combined_monthly_data <- combined_monthly_data %>%
 The cleaned dataset, `combined_monthly_data`, includes variables for monthly cases, deaths, hospitalizations, and tests for various racial and ethnic groups, along with population data and calculated rates. Below is a preview of the dataset structure:
 
 
-:::
 
 
+# Exploratory Data Analysis
+
+4.1 Uncover new information in the data that is not self-evident (i.e. do not just plot the data as it is; rather, slice and dice the data in different ways, create new variables, or join separate data frames to create new summary information). 
+4.2 Provide findings in the form of plots and tables. Show me you can display findings in different ways. 
+4.3 Graph(s) are carefully tuned for desired purpose. One graph illustrates one primary point and is appropriately formatted (plot and axis titles, legend if necessary, scales are appropriate, appropriate geoms used, etc.). 
+4.4 Table(s) carefully constructed to make it easy to perform important comparisons. Careful styling highlights important features. Size of table is appropriate. 
+4.5 Insights obtained from the analysis are thoroughly, yet succinctly, explained. Easy to see and understand the interesting findings that you uncovered. 
+
+
+# Summary
+
+6.1 Summarize the problem statement you addressed. 
+6.2 Summarize how you addressed this problem statement (the data used and the methodology employed). 
+6.3 Summarize the interesting insights that your analysis provided. 
+6.4 Summarize the implications to the reader of your analysis. 
+6.5 Discuss the limitations of your analysis and how you, or someone else, could improve or build on it. 
+
+
+
+# References
 
 <div id= "refs"></div>
 
 
-
+:::
