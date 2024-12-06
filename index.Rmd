@@ -194,7 +194,7 @@ The dataset categorizes individuals into the following racial and ethnic groups:
 Four datasets were loaded for analysis: `us-states.csv` (state-level COVID-19 data), `us.csv` (national-level COVID-19 data), `CRDT Data - CRDT.csv` (COVID Racial Data Tracker), and `ACSDP1Y2019.DP05-2024-11-18T022938.csv` (American Community Survey population data). Each dataset was checked for duplicate rows using the `duplicated()` function, and no duplicates were found in any of the datasets. 
 
 
-```{r, include=FALSE}
+```{r, results='hide'}
 ################################################################################
 #                  DATA IMPORTING & CHECKING FOR DUPLICATES                    #
 ################################################################################ 
@@ -226,7 +226,7 @@ for (name in names(datasets)) {
 Column names in `population_data` were reformatted to follow a consistent naming convention, replacing blank spaces with underscores for easier referencing. No missing values were found.
 
 
-```{r, include=FALSE}
+```{r, results='hide'}
 # Extracting the overall US population estimate
 population_data$Label[1] <- "US"
 
@@ -260,7 +260,7 @@ The `us_states_data` dataset was created by merging `states_data` with national-
 ################################################################################ 
 
 # Checking dimensions for the us_state and states_data
-dim(us_data) # [1] 1158    3   
+dim(us_data)     # [1] 1158    3   
 dim(states_data) # [1] 61942     5
 
 # Merge the states_data and us_data by 'date' column 
@@ -298,19 +298,18 @@ filtered_us_states_data1 <- filtered_us_states_data1 %>%
               select(State, Population_Total), 
     by = c("state" = "State"))  # Match on state 
 
-# Add rate columns for cases and deaths
 filtered_us_states_data1 <- filtered_us_states_data1 %>%
-  mutate(state_cases_rate = (cases_state / Population_Total) * 100000,   # Cases rate per 100,000
-         state_deaths_rate = (deaths_state / Population_Total) * 100000) # Deaths rate per 100,000
-  
+  mutate(state_cases_rate = round((cases_state / Population_Total) * 100000, 8),   # Cases rate per 100,000
+         state_deaths_rate = round((deaths_state / Population_Total) * 100000, 8)) # Deaths rate per 100,000
 
 # Extract the total U.S. population from the first row of Population_Total in population_data
 us_population <- population_data$Population_Total[1]
 
 # Add rate columns for cases and deaths at the national level
 filtered_us_states_data1 <- filtered_us_states_data1 %>%
-  mutate(us_cases_rate = (cases_us / us_population) * 100000,    # Cases rate per 100,000 for the US
-         us_deaths_rate = (deaths_us / us_population) * 100000)  # Deaths rate per 100,000 for the US
+  mutate(us_cases_rate = round((cases_us / us_population) * 100000, 8),    # Cases rate per 100,000 for the US
+         us_deaths_rate = round((deaths_us / us_population) * 100000, 8))  # Deaths rate per 100,000 for the US
+
 
 
 # Filter to retain the last recorded date per month for each state
@@ -329,11 +328,22 @@ Below is the summary information about the variables in the cleaned `monthly_dat
 
 The **date** variable represents the latest recorded observation date for each month and state, with additional columns for **month** and **year** extracted from the date. The **state** variable identifies the location where the data was collected. Key measures include **cases_state** and **deaths_state**, representing the cumulative COVID-19 cases and deaths reported within each state by the recorded date. National-level statistics are provided through **cases_us** and **deaths_us**, which reflect cumulative COVID-19 cases and deaths across the United States. Population data is captured in the **Population_Total** variable, sourced from the American Community Survey estimates. **state_cases_rate** and **state_deaths_rate** provide state-level case and death rates per 100,000 population, while **us_cases_rate** and **us_deaths_rate** offer the same metrics at the national level. 
 
+
+Below is a preview of the cleaned `monthly_data` dataset:
+
+```{r}
+datatable(monthly_data, colnames = c("Date", "Month", "Year", "State", "Statw-Level Cases", "State-Level Deaths", 
+                                     "US Total Cases", "US Total Deaths", "Total Population", "State Case Rate per 100k", 
+                                     "State Death Rate per 100k", "National Case Rate per 100k", "National Deaths Rate per 100k"),
+          filter = "top")
+```
+
 ### Processing and Cleaning the COVID Racial Data
 
 We also processed and cleaned the COVID racial data to ensure its suitability for analysis and to address issues such as missing values and irrelevant observations. The `Date` column was converted to a standard date format to enable temporal analysis. A summary of the dataset revealed a date range from April 12, 2020, to March 7, 2021, and a total of 5,320 rows with 54 variables. We assessed missing values across variables and states. 
 
-```{r, include=FALSE}
+
+```{r, results='hide'}
 ################################################################################
 #        DATA PROCESSING AND CLEANING FOR THE `covid_racial_data`              #
 ################################################################################ 
@@ -358,7 +368,7 @@ names(covid_racial_data)
 
 A state-wise analysis identified the top 10 states/territories with the highest overall missing values, helping to pinpoint data quality issues specific to geographic regions. These included; American Samoa, Northern Mariana Islands, Puerto Rico, Virgin Islands, North Dakota, Guam, West Virginia, Hawaii, New York, and Pennsylvania. Column names were cleaned for consistency, replacing spaces with underscores and standardizing terms like "Hosp" to "Hospitalized." Racial categories such as "AIAN" and "NHPI" were kept in uppercase for clarity.
 
-```{r, include=FALSE}
+```{r, results='hide'}
 # 1. Missingness by state
 missing_by_state <- covid_racial_data %>%
   group_by(State) %>%
@@ -373,6 +383,7 @@ top_10_states <- missing_by_state %>%
 
 # View the top 10 state names
 top_10_states
+# [1] "AS" "MP" "PR" "VI" "ND" "GU" "WV" "HI" "NY" "PA"
 
 # Custom function to clean column names
 format_column_names <- function(names) {
@@ -396,11 +407,10 @@ A column-wise analysis quantified the percentage of missing data for each variab
 
 ```{r, fig.height=9,fig.width=8}
 # 3. Visualize missingness using naniar
-# Matrix plot
+
 gg_miss_var(covid_racial_data) +
   labs(title = "Missingness in the Covid Racial Data", x = "Variables", y = "Number of Missing Values") +
   theme_minimal() 
-
 ```
 
 
@@ -408,7 +418,7 @@ For the next step of the analysis, we chose to exclude the following territories
 
  
 
-```{r, include=FALSE}
+```{r, results='hide'}
 # Replace blank spaces in column names with underscores
 names(covid_racial_data) <- gsub(" ", "_", names(covid_racial_data))
 
@@ -451,13 +461,18 @@ monthly_racial_data <- filtered_racial_data %>%
 
 The cleaned `monthly_racial_data` dataset provides detailed demographic information for analyzing COVID-19 cases, deaths, hospitalizations, and testing across racial and ethnic groups at the state level. The **month** and **year** variables indicate when the observations were recorded, while **State** represents the state using its two-letter abbreviation. The dataset includes cumulative counts of COVID-19 cases, deaths, hospitalizations, and tests, disaggregated by racial and ethnic groups. For racial categories, it provides variables for **White**, **Black**, **Asian**, **American Indian or Alaska Native (AIAN)**, **Native Hawaiian or Pacific Islander (NHPI)**, and **Multiracial** populations. Ethnicity-specific variables capture data for **Hispanic** individuals and **non-Hispanic** individuals, with further distinctions between cases, deaths, hospitalizations, and tests.
 
+Below is a preview of the cleaned `monthly_racial_data` dataset:
+
+```{r}
+datatable(monthly_racial_data, filter = "top")
+```
 
 ### Aggregation of State-Level, COVID Racial, and Population Data
 
 To prepare the combined state-level COVID-19 racial dataset for analysis, first,the `filtered_us_states_data` used to create the `monthly_data` in step was filtered to include only data between April 12, 2020, and March 7, 2021. This date range corresponds to the period covered by the `covid_racial_data`. Similarly, regions such as Puerto Rico, Virgin Islands, Guam, Northern Mariana Islands, and American Samoa were excluded due to significant missing data and the lack of reliable population estimates. This step allowed the focus to remain on states with complete and consistent data. Next, the `monthly_us_state_data` was created by only retaining the latest available observation (based on date) for each state, year and month. State names in the `monthly_us_state_data` and `population_data` datasets were converted to standardized abbreviations. This ensured compatibility when merging datasets and avoided mismatches due to variations in naming conventions.
 
 
-```{r, include=FALSE}
+```{r, results='hide'}
 # Define the date range
 start_date <- as.Date("2020-04-12")
 end_date <- as.Date("2021-03-07")
@@ -504,12 +519,12 @@ combined_monthly_data <- monthly_us_state_data %>%
 Thirdly, in the `combined_monthly_data`, Rates for cases, deaths, hospitalizations, and tests were calculated for each racial/ethnic group by dividing the respective counts by the population of that group and scaling to 100,000. These standardized rates facilitate meaningful comparisons across states and demographic groups.
 
 ```{r}
-# Calculate rates for columns 13 to 44 based on population values from columns 45 to 52
+# Calculate rates for columns 13 to 44 based on population values from columns 45 to 52, rounded to 8 decimal places
 combined_monthly_data <- combined_monthly_data %>%
   mutate(
     across(
       .cols = 13:44,  # Columns for cases, deaths, hospitalizations, tests
-      .fns = ~ . / get(sub("Cases|Deaths|Hospitalized|Tests", "Population", cur_column())) * 100000,
+      .fns = ~ round((. / get(sub("Cases|Deaths|Hospitalized|Tests", "Population", cur_column())) * 100000), 8),
       .names = "{.col}_rate"
     )
   )
@@ -519,7 +534,11 @@ combined_monthly_data <- combined_monthly_data %>%
 The cleaned dataset, `combined_monthly_data`, includes variables for monthly cases, deaths, hospitalizations, and tests for various racial and ethnic groups, along with population data and calculated rates. Below is a preview of the dataset structure:
 
 
+Below is a preview of the cleaned `combined_monthly_data` dataset:
 
+```{r}
+datatable(combined_monthly_data, filter = "top")
+```
 
 # Exploratory Data Analysis
 
