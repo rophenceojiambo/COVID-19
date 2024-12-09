@@ -109,7 +109,9 @@ library(naniar)      # For managing and visualizing missing data in datasets
 library(usdata)      # For working with datasets specific to the United States, including state and county data
 library(ggplot2)     # For creating and customizing data visualizations
 library(htmltools)
-
+library(gridExtra)
+library(plotly)     # For interactivity
+library(scales)    # For proper number formatting
 ```
 
 
@@ -253,7 +255,7 @@ colSums(is.na(population_data))
 
 ```
 
-The `us_states_data` dataset was created by merging `states_data` with national-level data from `us.csv` to integrate state-level and national trends. Population data (`Population_Total`) was merged into `us_states_data` to enable rate calculations for cases and deaths. The `us_states_data` dataset was filtered to retain only the states present in `population_data`, ensuring alignment between datasets. Next, we further summarized the state-level data to retain only the last recorded observation for each state within each month. To achieve this, we first extracted the `year` and `month` from the `date` column, which allowed us to group the data by `state`, `year`, and `month`. Within each group, we filtered the data to include only the row corresponding to the most recent date for that month, ensuring that the dataset captures the latest recorded statistics for each state at the monthly level. 
+Population data (`Population_Total`) was merged into `states_data` to enable rate calculations for cases and deaths. The `states_data` dataset was filtered to retain only the states present in `population_data`, ensuring alignment between datasets. Next, we further summarized the state-level data to retain only the last recorded observation for each state within each month. To achieve this, we first extracted the `year` and `month` from the `date` column, which allowed us to group the data by `state`, `year`, and `month`. Within each group, we filtered the data to include only the row corresponding to the most recent date for that month, ensuring that the dataset captures the latest recorded statistics for each state at the monthly level. 
 
 
 
@@ -267,57 +269,51 @@ The `us_states_data` dataset was created by merging `states_data` with national-
 dim(us_data)     # [1] 1158    3   
 dim(states_data) # [1] 61942     5
 
-# Merge the states_data and us_data by 'date' column 
-us_states_data <- merge(states_data, us_data, by = "date", 
-                        suffixes = c("_state", "_us")) %>%
+states_data <- states_data %>%
   select(-fips)  # Drop the 'fips' column as it is not needed for next analysis steps
 
 # Check for missing values
-colSums(is.na(us_states_data))
+colSums(is.na(states_data))
 # The following is the console output for missing values in population-related columns:
-# 
-# State                 Population_Total           Population_Multiracial 
-#   0                            0                              0 
-# Population_White                 Population_Black                  Population_AIAN 
-#        0                                0                                0 
-# Population_Asian                  Population_NHPI    Population_Ethnicity_Hispanic 
-#      0                                0                                0 
-# Population_Ethnicity_Nonhispanic 
-#                0 
+#   date  state  cases deaths 
+#     0      0      0      0 
 
 # Get the earliest and latest dates
-summary(us_states_data$date)
+summary(states_data$date)
 #         Min.      1st Qu.       Median         Mean      3rd Qu.         Max. 
 #   "2020-01-21"  "2020-12-09"  "2021-09-16" "2021-09-13" "2022-06-20" "2023-03-23" 
 
 
-# Filter `us_states_data` to include only states present in `population_data$Label`
-filtered_us_states_data1 <- us_states_data %>%
+# Filter `states_data` to include only states present in `population_data$Label`
+filtered_states_data <- states_data %>%
   filter(state %in% unique(population_data$State))
 
 
-# Merge only the Population_Total column into filtered_us_states_data
-filtered_us_states_data1 <- filtered_us_states_data1 %>%
+# Merge only the Population_Total column into filtered_states_data
+filtered_states_data <- filtered_states_data %>%
   left_join(population_data %>% 
               select(State, Population_Total), 
     by = c("state" = "State"))  # Match on state 
 
-filtered_us_states_data1 <- filtered_us_states_data1 %>%
-  mutate(state_cases_rate = round((cases_state / Population_Total) * 100000, 8),   # Cases rate per 100,000
-         state_deaths_rate = round((deaths_state / Population_Total) * 100000, 8)) # Deaths rate per 100,000
+filtered_states_data <- filtered_states_data %>%
+  mutate(state_cases_rate = round((cases/ Population_Total) * 100000, 8),   # Cases rate per 100,000
+         state_deaths_rate = round((deaths / Population_Total) * 100000, 8)) # Deaths rate per 100,000
+
+#------------------------------------------------------------------------------#
 
 # Extract the total U.S. population from the first row of Population_Total in population_data
 us_population <- population_data$Population_Total[1]
 
+
 # Add rate columns for cases and deaths at the national level
-filtered_us_states_data1 <- filtered_us_states_data1 %>%
-  mutate(us_cases_rate = round((cases_us / us_population) * 100000, 8),    # Cases rate per 100,000 for the US
-         us_deaths_rate = round((deaths_us / us_population) * 100000, 8))  # Deaths rate per 100,000 for the US
+us_data <- us_data %>%
+  mutate(us_cases_rate = round((cases / us_population) * 100000, 8),    # Cases rate per 100,000 for the US
+         us_deaths_rate = round((deaths / us_population) * 100000, 8))  # Deaths rate per 100,000 for the US
 
 
 
 # Filter to retain the last recorded date per month for each state
-monthly_data <- filtered_us_states_data1 %>%
+monthly_state_data <- filtered_states_data %>%
   mutate(year = year(date),                      # Extract the year from the date    
          month = month(date, label = TRUE)) %>%  # Extract the month as a label
   group_by(state, year, month) %>%               # Group by state, year, and month
@@ -328,19 +324,41 @@ monthly_data <- filtered_us_states_data1 %>%
   
 ```
 
-Below is the summary information about the variables in the cleaned `monthly_data` dataset:
+Below is the summary information about the variables in the cleaned `monthly_state_data` and `monthly_us_data` datasets:
 
 The **date** variable represents the latest recorded observation date for each month and state, with additional columns for **month** and **year** extracted from the date. The **state** variable identifies the location where the data was collected. Key measures include **cases_state** and **deaths_state**, representing the cumulative COVID-19 cases and deaths reported within each state by the recorded date. National-level statistics are provided through **cases_us** and **deaths_us**, which reflect cumulative COVID-19 cases and deaths across the United States. Population data is captured in the **Population_Total** variable, sourced from the American Community Survey estimates. **state_cases_rate** and **state_deaths_rate** provide state-level case and death rates per 100,000 population, while **us_cases_rate** and **us_deaths_rate** offer the same metrics at the national level. 
 
 
-Below is a preview of the cleaned `monthly_data` dataset:
+Below is a preview of the cleaned `monthly_state_data` dataset:
 
 ```{r}
-datatable(monthly_data, colnames = c("Date", "Month", "Year", "State", "Statw-Level Cases", "State-Level Deaths", 
-                                     "US Total Cases", "US Total Deaths", "Total Population", "State Case Rate per 100k", 
-                                     "State Death Rate per 100k", "National Case Rate per 100k", "National Deaths Rate per 100k"),
+# Preview of the cleaned monthly state data
+datatable(monthly_state_data, colnames = c("Date", "Month", "Year", "State", "State-Level Cases", "State-Level Deaths", 
+                                     "Total Population", "State Case Rate per 100k", 
+                                     "State Death Rate per 100k"),
           filter = "top")
 ```
+
+Similarly, we filtered the `us_data` to retain monthly observations since the data was cumulative.Below is a preview of the cleaned `monthly_us_data` dataset:
+
+```{r}
+# Filter to retain the last recorded date per month for the national data
+monthly_us_data <- us_data %>%
+  mutate(year = year(date),                      # Extract the year from the date    
+         month = month(date, label = TRUE)) %>%  # Extract the month as a label
+  group_by(year, month) %>%                      # Group by year, and month
+  filter(date == max(date)) %>%                  # Keep rows where the date is the maximum within each group
+  ungroup() %>%
+  select(date, month, year, everything())        # Rearrange columns: date, month, year, and all others
+
+# Preview of the cleaned monthly national data
+datatable(monthly_us_data, colnames = c("Date", "Month", "Year", "US Total Cases", "US Total Deaths",
+                                           "National Case Rate per 100k", "National Deaths Rate per 100k"),
+          filter = "top")
+
+```
+
+
 
 ### Processing and Cleaning the COVID Racial Data
 
@@ -373,7 +391,7 @@ names(covid_racial_data)
 A state-wise analysis identified the top 10 states/territories with the highest overall missing values, helping to pinpoint data quality issues specific to geographic regions. These included; American Samoa, Northern Mariana Islands, Puerto Rico, Virgin Islands, North Dakota, Guam, West Virginia, Hawaii, New York, and Pennsylvania. Column names were cleaned for consistency, replacing spaces with underscores and standardizing terms like "Hosp" to "Hospitalized." Racial categories such as "AIAN" and "NHPI" were kept in uppercase for clarity.
 
 ```{r, results='hide'}
-# 1. Missingness by state
+# Missingness by state
 missing_by_state <- covid_racial_data %>%
   group_by(State) %>%
   summarise(across(everything(), ~ sum(is.na(.)), .names = "Missing_{col}")) %>%
@@ -410,7 +428,7 @@ A column-wise analysis quantified the percentage of missing data for each variab
 
 
 ```{r, fig.height=9,fig.width=8}
-# 3. Visualize missingness using naniar
+# Visualize missingness using naniar
 
 gg_miss_var(covid_racial_data) +
   labs(title = "Missingness in the Covid Racial Data", x = "Variables", y = "Number of Missing Values") +
@@ -468,12 +486,13 @@ The cleaned `monthly_racial_data` dataset provides detailed demographic informat
 Below is a preview of the cleaned `monthly_racial_data` dataset:
 
 ```{r}
+# Display data table
 datatable(monthly_racial_data, filter = "top")
 ```
 
 ### Aggregation of State-Level, COVID Racial, and Population Data
 
-To prepare the combined state-level COVID-19 racial dataset for analysis, first,the `filtered_us_states_data` used to create the `monthly_data` in step was filtered to include only data between April 12, 2020, and March 7, 2021. This date range corresponds to the period covered by the `covid_racial_data`. Similarly, regions such as Puerto Rico, Virgin Islands, Guam, Northern Mariana Islands, and American Samoa were excluded due to significant missing data and the lack of reliable population estimates. This step allowed the focus to remain on states with complete and consistent data. Next, the `monthly_us_state_data` was created by only retaining the latest available observation (based on date) for each state, year and month. State names in the `monthly_us_state_data` and `population_data` datasets were converted to standardized abbreviations. This ensured compatibility when merging datasets and avoided mismatches due to variations in naming conventions.
+To prepare the combined state-level COVID-19 racial dataset for analysis, first,the `filtered_states_data` used to create the `monthly_data` in step was filtered to include only data between April 12, 2020, and March 7, 2021. This date range corresponds to the period covered by the `covid_racial_data`. Similarly, regions such as Puerto Rico, Virgin Islands, Guam, Northern Mariana Islands, and American Samoa were excluded due to significant missing data and the lack of reliable population estimates. This step allowed the focus to remain on states with complete and consistent data. Next, the `monthly_us_state_data` was created by only retaining the latest available observation (based on date) for each state, year and month. State names in the `monthly_us_state_data` and `population_data` datasets were converted to standardized abbreviations. This ensured compatibility when merging datasets and avoided mismatches due to variations in naming conventions.
 
 
 ```{r, results='hide'}
@@ -481,16 +500,16 @@ To prepare the combined state-level COVID-19 racial dataset for analysis, first,
 start_date <- as.Date("2020-04-12")
 end_date <- as.Date("2021-03-07")
 
-# Filter the merged dataset by the date range
-filtered_us_states_data_2 <- filtered_us_states_data1 %>%
-  filter(date >= start_date & date <= end_date) %>% # 17160 by 11
+# Filter the dataset by the date range
+filtered_states_data_2 <- filtered_states_data %>%
+  filter(date >= start_date & date <= end_date) %>% # 17160 by 7
   filter(!state %in% c("Puerto Rico", "Virgin Islands", "Guam", "Northern Mariana Islands", "American Samoa")) %>%
   arrange(date)
 
-dim(filtered_us_states_data_2) # [1] 16830    11
+dim(filtered_states_data_2) # [1] 16830    7
 
 # Filter to retain the last recorded date per month for each state
-monthly_us_state_data <- filtered_us_states_data_2 %>%
+monthly_state_data2 <- filtered_states_data_2 %>%
   rename(State = state) %>%
   mutate(year = year(date),                      # Extract the year from the date  
          month = month(date, label = TRUE)) %>%  # Extract the month as a label
@@ -501,7 +520,7 @@ monthly_us_state_data <- filtered_us_states_data_2 %>%
 
 
 # Convert full state names in monthly_us_state_data to state abbreviations
-monthly_us_state_data$State<- state2abbr(monthly_us_state_data$State)
+monthly_state_data2$State<- state2abbr(monthly_state_data2$State)
 
 # Convert full state names in population_data to state abbreviations
 population_data$State<- state2abbr(population_data$State)
@@ -509,12 +528,12 @@ population_data$State<- state2abbr(population_data$State)
 ```
 
 
-Secondly, the `monthly_us_state_data` dataset was joined with the `monthly_racial_data` and `population_data`, to create the `combined_monthly_data` that has the integration of COVID-19 racial statistics with population metrics. 
+Secondly, the `monthly_state_data2` dataset was joined with the `monthly_racial_data` and `population_data`, to create the `combined_monthly_data` that has the integration of COVID-19 racial statistics with population metrics. 
 
 
 ```{r}
 # Join the datasets
-combined_monthly_data <- monthly_us_state_data %>%
+combined_monthly_data <- monthly_state_data2 %>%
   left_join(monthly_racial_data, by = c("month", "year", "State")) %>%
   left_join(population_data, by = c("State", "Population_Total"))
 
@@ -557,10 +576,171 @@ datatable(combined_monthly_data, filter = "top")
 4.4 Table(s) carefully constructed to make it easy to perform important comparisons. Careful styling highlights important features. Size of table is appropriate. 
 4.5 Insights obtained from the analysis are thoroughly, yet succinctly, explained. Easy to see and understand the interesting findings that you uncovered. 
 
+## National-Level Data Exploration
+
+
+```{r}
+# renaming data to avoid overwriting
+df <- monthly_us_data
+
+# Reshape data for Cases and Deaths into long format
+df_long_counts <- df %>%
+  pivot_longer(cols = c(cases, deaths),        # Columns to pivot into long format
+               names_to = "Metric",            # New column for the metric names: 'cases' and 'deaths'
+               values_to = "Count") %>%        # New column for the corresponding values
+  select(-c(us_cases_rate, us_deaths_rate))    # Drop rate columns (not needed here)
+
+# Reshape data for Case Rates and Death Rates into long format
+df_long_rates <- df %>%
+  pivot_longer(cols = c(us_cases_rate, us_deaths_rate),   # Columns to pivot into long format
+               names_to = "rate_type",                    # New column for rate names: 'us_cases_rate' and 'us_deaths_rate'
+               values_to = "rate") %>%                    # New column for the corresponding rate values
+  select(-c(cases, deaths))                               # Drop cases and deaths columns (not needed here)
+
+```
+
+
+```{r, fig.width= 10, fig.height=8}
+# Plot the Cases and Deaths with side-by-side bars (dodged) for each month and year
+ggplot(df_long_counts, 
+       aes(x = month, y = Count, fill = Metric)) +    # Set x-axis, y-axis, and fill color
+  geom_bar(stat = "identity", position = "dodge") +   # Use dodged bars to place bars side by side
+  facet_wrap(~ year, scales = "free") +               # Create separate plots (facets) for each year
+  scale_y_continuous(labels = label_comma()) +        # Format y-axis values with commas
+  labs(title = "National-Level Monthly COVID-19 Cases and Deaths by Year", 
+    x = "Month",                                      # X-axis label
+    y = "Count",                                      # Y-axis label
+    fill = "Metric") +                                # Legend title
+  theme_minimal() +                                   # Use a clean, minimal theme
+  theme(plot.title = element_text(hjust = 0.5))       # Center the plot title
+
+```
+
+
+
+```{r, fig.width= 10, fig.height=8}
+# Plot the Monthly Rates of COVID-19 Cases and Deaths by Year
+ggplot(df_long_rates, 
+       aes(x = month, y = rate, fill = rate_type)) +  
+  geom_bar(stat = "identity", position = "dodge") +  # Use side-by-side (dodged) bars for rate types
+  facet_wrap(~ year, scales = "free") +              # Create separate panels (facets) for each year; scales adjust independently
+  scale_y_continuous(labels = label_comma()) +       # Format y-axis values with commas for better readability
+  labs(title = "National-Level Monthly Rates of COVID-19 Cases and Deaths by Year", 
+       x = "Month",                                                  # Label for x-axis
+       y = "Rate",                                                   # Label for y-axis
+       fill = "Rate Type") +                                         # Legend title for 'rate_type'
+  theme_minimal() +                                                  # Use a clean, minimalist theme
+  theme(plot.title = element_text(hjust = 0.5))  # Center the plot title
+
+```
+
+
+## State-Level Data Exploration
+
+
+
+```{r}
+# Step 1: Filter and Prepare the Data
+subset1 <- monthly_state_data %>%
+  filter(month == "Mar" & year == 2023)        # Filter for March 2023 since data is cumulative
+
+# Convert state names to abbreviations
+subset1$state <- state2abbr(subset1$state)     # Ensure 'state' has two-letter state abbreviations
+
+# Replace any NA values in the 'state' column with "PR" (Puerto Rico) to ensure all states and territories are properly labeled.
+subset1$state[is.na(subset1$state)] <- "PR"
+
+
+# Step 2: Create Hover Text
+subset1$hover_text <- paste0("State: ", subset1$state, "<br>",    # State abbreviation
+  "Total Cases: ", scales::comma(subset1$cases), "<br>",          # Total number of cases with commas
+  "Cases per 100k: ", round(subset1$state_cases_rate, 4), "<br>", # Cases per 100,000 rounded to 4 decimals
+  "Total Deaths: ", scales::comma(subset1$deaths), "<br>",        # Total number of deaths with commas
+  "Deaths per 100k: ", round(subset1$state_deaths_rate, 4))       # Deaths per 100,000 rounded to 4 decimals
+
+
+# Step 3: Create an Interactive US Map Using plot_geo
+fig1 <- plot_geo(subset1, locationmode = 'USA-states') %>%        # Create a US map with state boundaries
+  add_trace(z = ~ cases,          # Value to display (total cases)
+            locations = ~ state,  # State abbreviations for mapping
+            text = ~ hover_text,  # Custom hover text
+            hoverinfo = "text",   # Display only custom hover text
+            colorscale = "Reds",  # Color gradient for total cases (light to dark red)
+            colorbar = list(title = "Total Cases")) %>% # Add color bar legend
+  layout(title = list(
+      text = "U.S. State Map of COVID-19 Cases (March 23, 2023)<br><sup>Hover over the map to see more details</sup>",
+      x = 0.5, # Center the title
+      font = list(size = 18)),
+      geo = list(scope = 'usa',                          # Focus map on the USA
+                 projection = list(type = 'albers usa'), # Use Albers USA map projection
+                 showlakes = TRUE,                       # Show lakes on the map
+                 lakecolor = 'rgb(255, 255, 255)'))      # Set lake color to white
+
+# Step 4: Display the Interactive Map
+fig1 
+```
+
+
+
+
+
+```{r, fig.height=10, fig.width=15}
+# Visualizing number of Covid cases per state
+plot1 <- ggplot(data = subset1) +
+  geom_bar(aes(x = reorder(state, cases),
+               y = cases, fill = state),
+           stat = "identity", show.legend = FALSE) +
+  scale_y_continuous(labels = label_comma()) + # Full number format
+  labs(x = "State", y = "Covid Cases", title = "Covid Cases per State") +
+  coord_flip() +
+  theme_classic() +
+  theme(plot.margin = margin(t = 10, r = 20, b = 20, l = 50), # Adjust margins
+    axis.text.y = element_text(size = 14, face = "bold")) # Increase font size and bold state names
+  
+
+# Visualizing number of Covid deaths per state
+plot2 <- ggplot(data = subset1) +
+  geom_bar(aes(x = reorder(state, deaths),
+               y = deaths, fill = state),
+           stat = "identity", show.legend = FALSE) +
+  labs(x = "State", y = "Covid Deaths", title = "Covid Deaths per State") +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.text.y = element_text(size = 12, face = "bold")) # Increase font size and bold state names
+
+# Arrange both plots side by side
+grid.arrange(plot1, plot2, ncol = 2)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <div style="text-align: center; margin-top: 20px;">
   <a href="#top" style="text-decoration: none; background-color: #007BFF; color: white; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Back to Top</a>
 </div>
+
+
 
 # Summary
 
