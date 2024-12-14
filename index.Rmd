@@ -19,7 +19,7 @@ csl: apa-numeric-superscript-brackets.csl
 <div style="text-align: center; margin-bottom: 20px;">
   <h1 style="font-size: 3rem;">Disparities in COVID-19 Outcomes</h1>
   <p></strong> Rophence Ojiambo</p>
-  <p></strong> December 6, 2024</p>
+  <p></strong> December 16, 2024</p>
 </div>
 
 
@@ -585,11 +585,13 @@ datatable(combined_monthly_data, filter = "top")
 
 # Exploratory Data Analysis
 
-4.1 Uncover new information in the data that is not self-evident (i.e. do not just plot the data as it is; rather, slice and dice the data in different ways, create new variables, or join separate data frames to create new summary information). 
-4.2 Provide findings in the form of plots and tables. Show me you can display findings in different ways. 
-4.3 Graph(s) are carefully tuned for desired purpose. One graph illustrates one primary point and is appropriately formatted (plot and axis titles, legend if necessary, scales are appropriate, appropriate geoms used, etc.). 
-4.4 Table(s) carefully constructed to make it easy to perform important comparisons. Careful styling highlights important features. Size of table is appropriate. 
-4.5 Insights obtained from the analysis are thoroughly, yet succinctly, explained. Easy to see and understand the interesting findings that you uncovered. 
+To Do List [Delete once done]
+
+  - 4.1 Uncover new information in the data that is not self-evident (i.e. do not just plot the data as it is; rather, slice and dice the data in different ways, create new variables, or join separate data frames to create new summary information). 
+  - 4.2 Provide findings in the form of plots and tables. Show me you can display findings in different ways. 
+  - 4.3 Graph(s) are carefully tuned for desired purpose. One graph illustrates one primary point and is appropriately formatted (plot and axis titles, legend if necessary, scales are appropriate, appropriate geoms used, etc.). 
+  - 4.4 Table(s) carefully constructed to make it easy to perform important comparisons. Careful styling highlights important features. Size of table is appropriate. 
+  - 4.5 Insights obtained from the analysis are thoroughly, yet succinctly, explained. Easy to see and understand the interesting findings that you uncovered. 
 
 ## National-Level Data Exploration
 
@@ -627,7 +629,7 @@ ggplot(monthly_us_data, aes(x = date, y = cases)) +
     subtitle = "Major COVID-19 Events Highlighted (2020-2023)",
     x = "Date",
     y = "Monthly Cases",
-    caption = "Source: National-level Data| Events: Major U.S. Milestones") +
+    caption = "Source: National-level Data | Events: Major U.S. Milestones") +
   
   # Minimal theme 
   theme_minimal() +
@@ -790,9 +792,11 @@ grid.arrange(plot1, plot2, ncol = 2)
 ## Covid Racial Data Exploration
 
 
+### Reported Cases and Deaths
+
 ```{r}
 # Aggregate data by month and year
-monthly_racial_aggregate <- combined_monthly_data %>%
+monthly_racial_cases <- combined_monthly_data %>%
   group_by(date) %>%
   summarize(Cases_White = sum(Cases_White, na.rm = TRUE),
             Cases_Black = sum(Cases_Black, na.rm = TRUE),
@@ -803,66 +807,250 @@ monthly_racial_aggregate <- combined_monthly_data %>%
             .groups = "drop") # Removes grouping
 
 # Display the aggregated monthly data
-monthly_racial_aggregate %>%
+monthly_racial_cases %>%
   kbl(caption = "Cumulative Monthly COVID-19 Cases by Racial Group", 
       col.names = c("Date", "White", "Black", "Asian", "AIAN", "NHPI", "Multiracial"),
-      format = "html",  # HTML format for better styling
-      digits = 0) %>%   # No decimals for case counts
+      format = "html") %>%
   kable_styling(full_width = FALSE, 
                 bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
                 position = "center") %>%
   column_spec(1, bold = TRUE, width = "8em") %>%   # Bold and narrow Date column
   column_spec(2:7, width = "8em") %>%               # Set consistent column width
-  row_spec(0, bold = TRUE, background = "#f5f5f5")  # Highlight the header row
+  row_spec(0, bold = TRUE, background = "magenta")  # Highlight the header row
+
+```
+
+
+```{r}
+# Aggregate deaths data by month
+monthly_racial_deaths <- combined_monthly_data %>%
+  group_by(date) %>%
+  summarize(
+    Deaths_White = sum(Deaths_White, na.rm = TRUE),
+    Deaths_Black = sum(Deaths_Black, na.rm = TRUE),
+    Deaths_Asian = sum(Deaths_Asian, na.rm = TRUE),
+    Deaths_AIAN = sum(Deaths_AIAN, na.rm = TRUE),
+    Deaths_NHPI = sum(Deaths_NHPI, na.rm = TRUE),
+    Deaths_Multiracial = sum(Deaths_Multiracial, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Display the aggregated monthly data
+monthly_racial_deaths %>%
+  kbl(caption = "Cumulative Monthly COVID-19 Deaths by Racial Group", 
+      col.names = c("Date", "White", "Black", "Asian", "AIAN", "NHPI", "Multiracial"),
+      format = "html") %>%
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                position = "center") %>%
+  column_spec(1, bold = TRUE, width = "8em") %>%    # Bold and narrow Date column
+  column_spec(2:7, width = "8em") %>%               # Set consistent column width
+  row_spec(0, bold = TRUE, background = "magenta")  # Highlight the header row
+```
+
+It is essential to plot **rates** instead of raw counts when analyzing public health metrics like COVID-19 cases, deaths, hospitalizations, and testing because rates provide a more accurate and fair comparison across groups. Different racial or demographic groups have varying population sizes, and raw counts can misrepresent the true burden of disease if one group is significantly larger than another. By normalizing counts to a standard unit (e.g., per 100,000 people), rates adjust for population size differences, ensuring meaningful and equitable comparisons. Thus, for the next section, we compare rates of cases, deaths, hospitalizations and tests by racial groups.
+
+### Rates of Cases and Deaths
+
+
+```{r}
+# Aggregate data by month for case rates
+monthly_racial_case_rate <- combined_monthly_data %>%
+  group_by(date) %>%
+  summarize(
+    Cases_White = sum(Cases_White_rate, na.rm = TRUE),
+    Cases_Black = sum(Cases_Black_rate, na.rm = TRUE),
+    Cases_Asian = sum(Cases_Asian_rate, na.rm = TRUE),
+    Cases_AIAN = sum(Cases_AIAN_rate, na.rm = TRUE),
+    Cases_NHPI = sum(Cases_NHPI_rate, na.rm = TRUE),
+    Cases_Multiracial = sum(Cases_Multiracial_rate, na.rm = TRUE),
+    .groups = "drop")  # Remove grouping
+  
+
+# Display the aggregated death rate table
+monthly_racial_case_rate %>%
+  kbl(caption = "Cumulative Monthly Rates of COVID-19 Cases by Racial Group", 
+      col.names = c("Date", "White", "Black", "Asian", "AIAN", "NHPI", "Multiracial"),
+      format = "html",  
+      digits = 4) %>%   
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                position = "center") %>%
+  column_spec(1, bold = TRUE, width = "8em") %>%   # Bold and narrow Date column
+  column_spec(2:7, width = "8em") %>%               # Set consistent column width
+  row_spec(0, bold = TRUE, background = "purple")  # Highlight the header row
 
 ```
 
 ```{r}
-# Reshape the data to long format for easy plotting
-monthly_racial_aggregate_long <- monthly_racial_aggregate %>%
-  pivot_longer(cols = c(Cases_White, Cases_Black, Cases_Asian, Cases_AIAN,
+# Reshape data to long format for plotting
+monthly_racial_case_rate_long <- monthly_racial_case_rate %>%
+  pivot_longer(cols = c(Cases_White, Cases_Black, Cases_Asian, Cases_AIAN, 
                         Cases_NHPI, Cases_Multiracial),
                names_to = "racial_group",
-               values_to = "cases") %>%
-  # Remove "Cases_" prefix
-  mutate(racial_group = str_remove(racial_group, "Cases_")) %>%
-  arrange(date, cases)
+               values_to = "case_rate") %>%
+  mutate(racial_group = str_remove(racial_group, "Cases_")) %>%  # Remove "Cases_" prefix
+  arrange(date, case_rate)
 
-```
-
-```{r, fig.width=8, fig.height=6}
 # Define breaks and date range 
-date_breaks <- seq(min(monthly_racial_aggregate$date), 
-                   max(monthly_racial_aggregate$date), by = "1 month")
+date_breaks <- seq(min(monthly_racial_case_rate$date), 
+                   max(monthly_racial_case_rate$date), by = "1 month")
 
 # Custom colors for racial groups
 custom_colors <- c("White" = "magenta", "Black" = "black",
   "Asian" = "orange", "AIAN" = "brown", "NHPI" = "blue", "Multiracial" = "green")
 
-# Plot the data
-ggplot(monthly_racial_aggregate_long, aes(x = date, y = cases, group = racial_group, color = racial_group)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
+
+# Plot the case rates
+ggplot(monthly_racial_case_rate_long, aes(x = date, y = case_rate, group = racial_group, color = racial_group)) +
+  geom_line(size = 1) +         
+  geom_point(size = 2) +       
   scale_color_manual(values = custom_colors) +
   scale_x_date(date_labels = "%m/%Y", breaks = date_breaks, expand = c(0.01, 0.01)) +
   scale_y_continuous(labels = scales::comma) +
-  labs(title = "Cumulative Monthly COVID-19 Cases by Racial Group",
+  labs(title = "Cumulative Monthly Rates of COVID-19 Cases by Racial Group",
        x = "Month/Year",
-       y = "Number of Cases",
+       y = "Case Rate (per 100,000)",
        color = "Racial Group") +
   theme_minimal() +
     theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
     legend.position = "top")
 
+```
+
+
+```{r}
+# Aggregate data by month for death rates
+monthly_racial_death_rate <- combined_monthly_data %>%
+  group_by(date) %>%
+  summarize(
+    Deaths_White = sum(Deaths_White_rate, na.rm = TRUE),
+    Deaths_Black = sum(Deaths_Black_rate, na.rm = TRUE),
+    Deaths_Asian = sum(Deaths_Asian_rate, na.rm = TRUE),
+    Deaths_AIAN = sum(Deaths_AIAN_rate, na.rm = TRUE),
+    Deaths_NHPI = sum(Deaths_NHPI_rate, na.rm = TRUE),
+    Deaths_Multiracial = sum(Deaths_Multiracial_rate, na.rm = TRUE),
+    .groups = "drop")  # Removes grouping
+  
+
+# Display the aggregated death rate table
+monthly_racial_death_rate%>%
+  kbl(caption = "Cumulative Monthly Rates of COVID-19 Deaths by Racial Group", 
+      col.names = c("Date", "White", "Black", "Asian", "AIAN", "NHPI", "Multiracial"),
+      format = "html",  
+      digits = 4) %>%   
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                position = "center") %>%
+  column_spec(1, bold = TRUE, width = "8em") %>%   # Bold and narrow Date column
+  column_spec(2:7, width = "8em") %>%               # Set consistent column width
+  row_spec(0, bold = TRUE, background = "purple")  # Highlight the header row
+```
+
+
+```{r, fig.width=8, fig.height=6}
+# Reshape data to long format for plotting
+monthly_racial_death_rate_long <- monthly_racial_death_rate %>%
+  pivot_longer(cols = c(Deaths_White, Deaths_Black, Deaths_Asian, Deaths_AIAN, 
+                        Deaths_NHPI, Deaths_Multiracial),
+               names_to = "racial_group",
+               values_to = "death_rate") %>%
+  mutate(racial_group = str_remove(racial_group, "Deaths_")) %>% # Clean column names
+  arrange(date, death_rate)
+
+# Plot the data
+ggplot(monthly_racial_death_rate_long, aes(x = date, y = death_rate, group = racial_group, color = racial_group)) +
+  geom_line(size = 1) +         
+  geom_point(size = 2) +       
+  scale_color_manual(values = custom_colors) +
+  scale_x_date(date_labels = "%m/%Y", breaks = date_breaks, expand = c(0.01, 0.01)) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Cumulative Monthly Rates of COVID-19 Deaths by Racial Group",
+       x = "Month/Year",
+       y = "Death Rate (per 100,000)",
+       color = "Racial Group") +
+  theme_minimal() +
+    theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    legend.position = "top")
 
 ```
 
 
+### Rates of Hospitalizations and Tests
 
+```{r, fig.width=9, fig.height=7}
+# Aggregate hospitalized rates data by month
+monthly_racial_hospitalized <- combined_monthly_data %>%
+  group_by(date) %>%
+  summarize(Hospitalized_White = sum(Hospitalized_White_rate, na.rm = TRUE),
+            Hospitalized_Black = sum(Hospitalized_Black_rate, na.rm = TRUE),
+            Hospitalized_Asian = sum(Hospitalized_Asian_rate, na.rm = TRUE),
+            Hospitalized_AIAN = sum(Hospitalized_AIAN_rate, na.rm = TRUE),
+            Hospitalized_NHPI = sum(Hospitalized_NHPI_rate, na.rm = TRUE),
+            Hospitalized_Multiracial = sum(Hospitalized_Multiracial_rate, na.rm = TRUE),
+            .groups = "drop")
 
+# Reshape data into long format for hospitalized rates
+monthly_racial_hospitalized_long <- monthly_racial_hospitalized %>%
+  pivot_longer(cols = starts_with("Hospitalized_"),
+    names_to = "racial_group",
+    values_to = "hospitalized_rate") %>%
+  mutate(racial_group = str_remove(racial_group, "Hospitalized_"))  # Clean column names
 
+# Plot the data
+ggplot(monthly_racial_hospitalized_long, aes(x = date, y = hospitalized_rate, group = racial_group, color = racial_group)) +
+  geom_line(size = 1) +         
+  geom_point(size = 2) +       
+  scale_color_manual(values = custom_colors) +
+  scale_x_date(date_labels = "%m/%Y", breaks = date_breaks, expand = c(0.01, 0.01)) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Cumulative Monthly Rates of COVID-19 Hospitalizations by Racial Group",
+       x = "Month/Year",
+       y = "Hospitalization Rates (per 100,000)",
+       color = "Racial Group") +
+  theme_minimal() +
+    theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    legend.position = "top")
+```
 
+```{r, fig.width=8, fig.height=6}
+# Aggregate test rates data by month
+monthly_racial_tests <- combined_monthly_data %>%
+  group_by(date) %>%
+  summarize(Tests_White = sum(Tests_White_rate, na.rm = TRUE),
+            Tests_Black = sum(Tests_Black_rate, na.rm = TRUE),
+            Tests_Asian = sum(Tests_Asian_rate, na.rm = TRUE),
+            Tests_AIAN = sum(Tests_AIAN_rate, na.rm = TRUE),
+            Tests_NHPI = sum(Tests_NHPI_rate, na.rm = TRUE),
+            Tests_Multiracial = sum(Tests_Multiracial_rate, na.rm = TRUE),
+            .groups = "drop")
+
+# Reshape data into long format for test rates
+monthly_racial_tests_long <- monthly_racial_tests %>%
+  pivot_longer(cols = starts_with("Tests_"),
+               names_to = "racial_group",
+               values_to = "test_rate") %>%
+  mutate(racial_group = str_remove(racial_group, "Tests_"))  # Clean column names
+
+# Plot the data
+ggplot(monthly_racial_tests_long, aes(x = date, y = test_rate, group = racial_group, color = racial_group)) +
+  geom_line(size = 1) +         
+  geom_point(size = 2) +       
+  scale_color_manual(values = custom_colors) +
+  scale_x_date(date_labels = "%m/%Y", breaks = date_breaks, expand = c(0.01, 0.01)) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Cumulative Monthly Rates of COVID-19 Tests by Racial Group",
+       x = "Month/Year",
+       y = "Tests Rate (per 100,000)",
+       color = "Racial Group") +
+  theme_minimal() +
+    theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+    legend.position = "top")
+```
 
 
 <div style="text-align: center; margin-top: 20px;">
@@ -873,7 +1061,7 @@ ggplot(monthly_racial_aggregate_long, aes(x = date, y = cases, group = racial_gr
 
 # Summary
 
-To Do List
+To Do List [Delete Once Done]
 
   - 6.1 Summarize the problem statement you addressed. 
   - 6.2 Summarize how you addressed this problem statement (the data used and the methodology employed). 
