@@ -886,7 +886,7 @@ monthly_racial_case_rate %>%
 
 ```
 
-```{r}
+```{r, fig.width=8, fig.height=6}
 # Reshape data to long format for plotting
 monthly_racial_case_rate_long <- monthly_racial_case_rate %>%
   pivot_longer(cols = c(Cases_White, Cases_Black, Cases_Asian, Cases_AIAN, 
