@@ -1,5 +1,6 @@
 ---
-lightbox: true
+title: "Racial Disparities in COVID-19 Outcomes"
+subtitle: "<div style='text-align: center; font-size: 1.2rem;'>Rophence Ojiambo<br>December 16, 2024</div>"
 format:
   html:
     code-fold: true
@@ -8,6 +9,15 @@ format:
     highlight-style: github
     page-layout: full
     title-block-align: center
+    self_contained: false
+    toc: false
+    include-in-header:
+      text: |
+        <style>
+          h1 { text-align: center; font-size: 3rem; }
+          .subtitle { text-align: center; margin-top: -10px; margin-bottom: 20px; }
+        </style>
+lightbox: true
 link-citations: true
 colorlinks: true
 linkcolor: blue
@@ -15,12 +25,6 @@ urlcolor: blue
 bibliography: references.bib
 csl: apa-numeric-superscript-brackets.csl
 ---
-
-<div style="text-align: center; margin-bottom: 20px;">
-  <h1 style="font-size: 3rem;">Disparities in COVID-19 Outcomes</h1>
-  <p></strong> Rophence Ojiambo</p>
-  <p></strong> December 16, 2024</p>
-</div>
 
 
 ```{r setup, include=FALSE}
