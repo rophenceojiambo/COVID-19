@@ -1,6 +1,6 @@
 ---
 title: "Racial Disparities in COVID-19 Outcomes"
-subtitle: "<div style='text-align: center; font-size: 1.2rem;'>Rophence Ojiambo<br>December 16, 2024</div>"
+subtitle: "<div style='text-align: center; font-size: 1.2rem;'>Rophence Ojiambo<br>December 15, 2024</div>"
 format:
   html:
     code-fold: true
