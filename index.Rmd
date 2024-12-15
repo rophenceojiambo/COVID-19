@@ -1210,7 +1210,7 @@ The racial group predictors estimate how COVID-19 case rates differ among racial
 The COVID-19 pandemic exacerbated existing health disparities in the United States, disproportionately impacting racial and ethnic minority groups. This project aimed to investigate the differential burden of COVID-19 outcomes, including cases, deaths, hospitalizations, and testing rates, across racial and ethnic communities. 
 
 
-To address this problem, I analyzed national-level and state-level COVID-19 data obtained from [The New York Times COVID-19 dataset](https://github.com/nytimes/covid-19-data), combined with the [**COVID Racial Data Tracker**](https://covidtracking.com/race) and population estimates from the [**American Community Survey (ACS) Demographic and Housing 5-Year Estimates (2019)**](https://data.census.gov/table/ACSDP5Y2019.DP05). The analysis involved the following steps: 
+To address this problem, I analyzed national-level and state-level COVID-19 data obtained from [**The New York Times COVID-19 dataset**](https://github.com/nytimes/covid-19-data), combined with the [**COVID Racial Data Tracker**](https://covidtracking.com/race) and population estimates from the [**American Community Survey (ACS) Demographic and Housing 5-Year Estimates (2019)**](https://data.census.gov/table/ACSDP5Y2019.DP05). The analysis involved the following steps: 
 
 
 1. **Data Preparation**: Cleaning, merging, and aggregating the datasets at state and racial group levels to calculate cumulative monthly rates (per 100,000 population) for cases, deaths, hospitalizations, and tests.  
