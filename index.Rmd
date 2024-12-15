@@ -118,7 +118,7 @@ library(ggplot2)     # For creating data visualizations.
 library(gridExtra)   # For combining and arranging multiple plots into a single layout.
 library(plotly)      # For creating interactive and dynamic visualizations, such as zooming and hovering features.
 library(scales)      # For formatting numeric scales: adding commas, percentages, or scientific notation.
-
+library(broom)       # Tidying output of statistical models
 
 ```
 
@@ -1057,9 +1057,119 @@ ggplot(monthly_racial_tests_long, aes(x = date, y = test_rate, group = racial_gr
 ```
 
 
-<div style="text-align: center; margin-top: 20px;">
-  <a href="#top" style="text-decoration: none; background-color: #007BFF; color: white; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Back to Top</a>
-</div>
+<blockquote style="font-size: 1.3em; font-style: italic; color: #555555; margin-top: 20px; margin-bottom: 20px; border-left: 4px solid #cccccc; padding-left: 15px;">
+“What are the relationships between COVID-19 case rates and key predictors: testing rates, hospitalization rates, and death rates across different racial groups, and do these predictors explain disparities in case rates among racial groups over time?”
+</blockquote>
+
+
+Finally, in this section, we conduct a linear regression analysis to identify and quantify the relationships between the **COVID-19 case rates** (dependent variable) and key predictors (independent variables) across different **racial groups** over time. The goal of this model is to understand:
+
+1. **How Testing Rates, Hospitalization Rates, and Death Rates Relate to Case Rates**:
+   - Does an increase in testing rates correlate with higher case rates?  
+   - Are hospitalization rates or death rates indicators of the severity or extent of infections?  
+2. **Differences Across Racial Groups**:
+   - By including `racial_group` as a categorical variable, the model accounts for differences in case rates across racial groups.  
+   - This allows us to see if certain racial groups are more impacted when adjusting for predictors like testing, hospitalization, and death rates.  
+
+**Model Specification**
+
+The linear regression model is specified as follows:
+
+$$
+\text{Case Rate} = \beta_0 + \beta_1 (\text{Testing Rate}) + \beta_2 (\text{Hospitalized Rate}) + \beta_3 (\text{Death Rate}) + \beta_4 (\text{Racial Group}) + \epsilon
+$$
+
+```{r}
+# Reshape the data and keep only relevant variables
+combined_long <- combined_monthly_data %>%
+  # Reshape the necessary columns into long format
+  pivot_longer(cols = c(Cases_White_rate, Cases_Black_rate, Cases_Asian_rate, Cases_AIAN_rate, 
+             Cases_NHPI_rate, Cases_Multiracial_rate,
+             Tests_White_rate, Tests_Black_rate, Tests_Asian_rate, Tests_AIAN_rate, 
+             Tests_NHPI_rate, Tests_Multiracial_rate,
+             Hospitalized_White_rate, Hospitalized_Black_rate, Hospitalized_Asian_rate, 
+             Hospitalized_AIAN_rate, Hospitalized_NHPI_rate, Hospitalized_Multiracial_rate,
+             Deaths_White_rate, Deaths_Black_rate, Deaths_Asian_rate, Deaths_AIAN_rate, 
+             Deaths_NHPI_rate, Deaths_Multiracial_rate),
+    names_to = c("variable_type", "racial_group"),  # Separate variable name and racial group
+    names_pattern = "(.*)_(.*)_rate",              # Split column names into parts
+    values_to = "value") %>%
+  # Reshape back into wide format keeping only the relevant predictors
+  pivot_wider(
+    names_from = variable_type,     # Spread variable types into separate columns
+    values_from = value) %>%             # Values go into the respective columns
+  # Select only the needed variables for linear regression
+  select(date, racial_group, Cases, Tests, Hospitalized, Deaths)
+
+
+# Run linear regression
+model_combined <- lm(Cases ~ Tests + Hospitalized + Deaths + racial_group, data = combined_long)
+
+# Tidy the regression model coefficients
+model_results <- tidy(model_combined)
+
+# Rename predictors for better readability
+model_results <- model_results %>%
+  mutate(term = case_when(
+      term == "(Intercept)" ~ "Intercept",
+      term == "racial_groupAsian" ~ "Asian Group",
+      term == "racial_groupBlack" ~ "Black Group",
+      term == "racial_groupMultiracial" ~ "Multiracial Group",
+      term == "racial_groupNHPI" ~ "NHPI Group",
+      term == "racial_groupWhite" ~ "White Group",
+      term == "Tests" ~ "Testing Rate",
+      term == "Hospitalized" ~ "Hospitalization Rate",
+      term == "Deaths" ~ "Death Rate",
+      TRUE ~ term),
+    Estimate = round(estimate, 3),
+    `Std. Error` = round(std.error, 3),
+    `t value` = round(statistic, 3),
+    `p value` = ifelse(p.value < 0.001, "<0.001", round(p.value, 3)),
+    Stars = case_when(   # Add stars based on p-value thresholds
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      p.value < 0.1   ~ ".",
+      TRUE            ~ "")) %>%
+  mutate(`p value` = paste0(`p value`, Stars)) %>%  # Append stars to p-values
+  select(term, Estimate, `Std. Error`, `t value`, `p value`)
+
+# Extract model statistics using glance()
+model_stats <- glance(model_combined)
+
+# Combine model statistics into a footnote string
+model_footnote <- paste0(
+  "Residual Standard Error: ", round(model_stats$sigma, 3), 
+  " | Multiple R-squared: ", round(model_stats$r.squared, 4), 
+  " | Adjusted R-squared: ", round(model_stats$adj.r.squared, 4),
+  " | F-statistic: ", round(model_stats$statistic, 2), 
+  " on ", model_stats$df, " and ", model_stats$df.residual, " DF",
+  " | p-value: < 2.2e-16"
+)
+
+# Display the coefficient table with footnotes
+model_results %>%
+  kbl(caption = "Regression Results: COVID-19 Case Rates",
+      col.names = c("Predictor", "Estimate", "Std. Error", "t Value", "p Value"),
+      format = "html") %>%
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                position = "center") %>%
+  row_spec(0, bold = TRUE, background = "magenta") %>%
+  column_spec(1, bold = TRUE) %>%
+  footnote(general = paste(model_footnote, 
+                           "Signif. codes: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1"))
+
+```
+
+
+The results of the linear regression model demonstrate that **testing rates**, **hospitalization rates**, and **death rates** are significant predictors of COVID-19 case rates, explaining over **94% of the variability** (Adjusted R-squared = 0.9416). A positive relationship was observed between testing rates and case rates, suggesting that increased testing identifies more COVID-19 cases, as expected. Testing is critical for case detection, particularly in underrepresented communities.. Similarly, higher hospitalization and death rates were associated with increased case rates. This strong and positive association may reflect the severity of COVID-19 cases where higher hospitalization rates correlate with increased case identification. It could also reflect a lagging relationship, where severe illness leads to more comprehensive testing.
+The significant association between death rates and cases rates underscores that higher death rates often occur alongside higher case rates. This trend could reflect regions with higher COVID-19 transmission or communities with limited access to early interventions.
+
+
+The racial group predictors estimate how COVID-19 case rates differ among racial groups relative to a reference category (AIAN).  Compared to the AIAN, **Multiracial**, **Asian**, and **Black communities** experienced notably higher case rates, possibly indicating systemic inequities that may stem from limited access to healthcare, socioeconomic vulnerabilities, and other social determinants of health.  While the **White** racial group had significant higher case rates,the disparity here may not be as pronounced as in some other racial groups. The **NHPI group** showed a lower case rate. This result contrasts with trends seen in other groups and may reflect differences in reporting, access to testing, or population size considerations.
+
+
 
 
 
