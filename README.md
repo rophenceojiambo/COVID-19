@@ -1,4 +1,4 @@
-# Final Project for GPH-GU 2182 Statistical Programming in R Course
+# Racial Disparities in COVID-19 Outcomes
 
 
 ![coronavirus](covid.jpg)
