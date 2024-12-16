@@ -49,7 +49,7 @@ The novel Coronavirus disease (COVID-19), caused by the serious acute respirator
 
 ## Problem Statement
 
-This project aims to investigate the disproportionate impact of the COVID-19 pandemic on racial and ethnic communities in the United States. By analyzing disparities in cases, deaths, hospitalizations, and testing rates across states and racial/ethnic groups, the research seeks to illuminate the differential burden of COVID-19 on these communities. The insights derived from this project will be vital for public health planning and policy making to promote equity and preparedness for future public health emergencies.
+This project aims to investigate the disproportionate impact of the COVID-19 pandemic on racial and ethnic communities in the United States. By analyzing disparities in cases, deaths, hospitalizations, and testing rates across states and racial/ethnic groups, the project seeks to illuminate the differential burden of COVID-19 on these communities. The insights derived from this project will be vital for public health planning and policy making to promote equity and preparedness for future public health emergencies.
 
 ## Data and Methodology
 
@@ -58,7 +58,7 @@ To explore these disparities, I will utilize the following datasets:
 -   **Nation level: us.csv**
 -   **State level: us-states.csv**
 
-The above two datasets contain the US COVID-19 data (cumulative cases and deaths) till 03/23/2023, and were originally obtained from [The New York Times](https://www.nytimes.com/interactive/2021/us/covid-cases.html), [Github repository](https://github.com/nytimes/covid-19-data)
+The above two datasets contain the US COVID-19 data (cumulative cases and deaths) until 03/23/2023, and were originally obtained from [The New York Times](https://www.nytimes.com/interactive/2021/us/covid-cases.html), [Github repository](https://github.com/nytimes/covid-19-data)
 
 Additionally, I will use the following external data sets to improve the analysis on the required data:
 
@@ -304,7 +304,7 @@ filtered_states_data <- filtered_states_data %>%
     by = c("state" = "State"))  # Match on state 
 
 filtered_states_data <- filtered_states_data %>%
-  mutate(state_cases_rate = round((cases/ Population_Total) * 100000, 8),   # Cases rate per 100,000
+  mutate(state_cases_rate = round((cases/ Population_Total) * 100000, 8),    # Cases rate per 100,000
          state_deaths_rate = round((deaths / Population_Total) * 100000, 8)) # Deaths rate per 100,000
 
 #------------------------------------------------------------------------------#
@@ -590,13 +590,13 @@ datatable(combined_monthly_data, filter = "top")
 # Exploratory Data Analysis
 
 
-This section provides a comprehensive overview of the dataset to understand its structure, identify patterns, and uncover initial insights. This process involves summarizing key variables, visualizing distributions, and examining relationships among predictors such as testing rates, hospitalization rates, and death rates across different racial groups.
+This section provides a comprehensive overview of the datasets to understand its structure, identify patterns, and uncover initial insights. This process involves summarizing key variables, visualizing distributions, and examining relationships among predictors such as testing rates, hospitalization rates, and death rates across different racial groups.
 
 
 ## National-Level Data Exploration
 
 
-The analysis of national-level COVID-19 data explores trends in cumulative cases, deaths, and rates per 100,000 population across the U.S. from March 2020 to early 2023, while highlighting major pandemic milestones. The cumulative cases and deaths exhibit sharp increases corresponding to key events, such as the declaration of a national emergency in March 2020, the administration of the first vaccines in December 2020, and the Delta and Omicron variant surges in mid-2021 and early 2022, respectively. These events underscore critical turning points in both the spread of the virus and public health responses. The plots also capture the stabilization in cases and deaths following the widespread availability of vaccines and bivalent boosters.
+The analysis of national-level COVID-19 data explores trends in cumulative cases, deaths, and rates per 100,000 population across the U.S. from March 2020 to early 2023, while highlighting major pandemic milestones. The cumulative cases and deaths exhibit sharp increases corresponding to key events, such as the declaration of a national emergency in March 2020, the administration of the first vaccines in December 2020, and the Delta and Omicron variant surges in early 2022, respectively. These events underscore critical turning points in both the spread of the virus and public health responses. The plots also capture the stabilization in cases and deaths following the widespread availability of vaccines and bivalent boosters.
 
 ```{r, fig.height=6, fig.width=8}
 # Define major U.S. COVID-19 events
@@ -937,7 +937,6 @@ ggplot(monthly_racial_case_rate_long, aes(x = date, y = case_rate, group = racia
        y = "Case Rate (per 100,000)",
        color = "Racial Group") +
   theme_minimal() +
-    theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
     legend.position = "top")
 
@@ -996,7 +995,6 @@ ggplot(monthly_racial_death_rate_long, aes(x = date, y = death_rate, group = rac
        y = "Death Rate (per 100,000)",
        color = "Racial Group") +
   theme_minimal() +
-    theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
     legend.position = "top")
 
@@ -1038,7 +1036,6 @@ ggplot(monthly_racial_hospitalized_long, aes(x = date, y = hospitalized_rate, gr
        y = "Hospitalization Rates (per 100,000)",
        color = "Racial Group") +
   theme_minimal() +
-    theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
     legend.position = "top")
 ```
@@ -1078,7 +1075,6 @@ ggplot(monthly_racial_tests_long, aes(x = date, y = test_rate, group = racial_gr
        y = "Tests Rate (per 100,000)",
        color = "Racial Group") +
   theme_minimal() +
-    theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
     legend.position = "top")
 ```
@@ -1246,6 +1242,9 @@ Despite the insights provided, the analysis has several limitations:
 Future work could build on this analysis by examining the role of socioeconomic factors (e.g., household income, education levels, poverty rates), vaccination rates, and comorbidities in exacerbating or mitigating COVID-19 disparities. Addressing these limitations will enhance our understanding of health inequities and inform more effective public health strategies.
 
 
+<blockquote style="font-size: 1.8em; font-style: italic; font-weight: bold; color: #555555; margin-top: 20px; margin-bottom: 20px; border-left: 4px solid #cccccc; padding-left: 15px;">
+All codes and datasets for this project can be found at my [GitHub Repository](https://github.com/rophenceojiambo/COVID-19).
+</blockquote>
 
 # References
 

@@ -9,7 +9,10 @@ The COVID-19 pandemic exacerbated existing health disparities in the United Stat
 
 ## Dataset
 
-The project uses national-level and state-level COVID-19 data obtained from [**The New York Times COVID-19 dataset**](https://github.com/nytimes/covid-19-data), combined with the [**COVID Racial Data Tracker**](https://covidtracking.com/race) and population estimates from the [**American Community Survey (ACS) Demographic and Housing 5-Year Estimates (2019)**](https://data.census.gov/table/ACSDP5Y2019.DP05).
+The project uses national-level and state-level COVID-19 data obtained from [**The New York Times COVID-19 dataset**](https://github.com/nytimes/covid-19-data),
+combined with the [**COVID Racial Data Tracker**](https://covidtracking.com/race) and 
+population estimates from the [**American Community Survey (ACS) Demographic and Housing 5-Year Estimates (2019)**](https://data.census.gov/table/ACSDP5Y2019.DP05).
+These datasets are in the Data Folder
 
 ## Methods
 
